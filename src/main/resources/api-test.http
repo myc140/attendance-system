@@ -1,0 +1,26 @@
+### 测试学生信息 GET 接口
+GET http://localhost:8080/student/info
+Accept: application/json
+
+### 测试学生考勤打卡 POST 接口
+POST http://localhost:8080/student/attendance
+Content-Type: text/plain
+
+42411072
+### 测试学生信息接口（路径参数）
+GET http://localhost:8080/student/info/42411072
+Accept: application/json
+
+### 测试考勤打卡接口（POST 请求体）
+POST http://localhost:8080/student/attendance
+Content-Type: text/plain
+
+42411072
+
+### 测试课程列表接口
+GET http://localhost:8080/student/courses
+Accept: application/json
+
+### 测试基础 hello 接口
+GET http://localhost:8080/hello
+Accept: text/plain
