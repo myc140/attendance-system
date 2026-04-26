@@ -1,26 +1,36 @@
-### 测试学生信息 GET 接口
-GET http://localhost:8080/student/info
-Accept: application/json
+### ==================== 用户模块（User）接口测试 ====================
+### 1. 新增教师用户
+POST http://localhost:8080/user/add
+Content-Type: application/json
 
-### 测试学生考勤打卡 POST 接口
-POST http://localhost:8080/student/attendance
-Content-Type: text/plain
+{
+  "username": "teacher_li",
+  "password": "123456",
+  "realName": "李老师",
+  "role": "TEACHER",
+  "createTime": null
+}
 
-42411072
-### 测试学生信息接口（路径参数）
-GET http://localhost:8080/student/info/42411072
-Accept: application/json
+### 2. 根据ID查询用户（ID为1，对应刚才新增的用户）
+GET http://localhost:8080/user/get/1
 
-### 测试考勤打卡接口（POST 请求体）
-POST http://localhost:8080/student/attendance
-Content-Type: text/plain
+### 3. 根据用户名查询用户（登录测试）
+GET http://localhost:8080/user/getByUsername/teacher_li
 
-42411072
+### 4. 查询所有教师用户
+GET http://localhost:8080/user/teachers
 
-### 测试课程列表接口
-GET http://localhost:8080/student/courses
-Accept: application/json
+### 5. 更新用户信息
+PUT http://localhost:8080/user/update
+Content-Type: application/json
 
-### 测试基础 hello 接口
-GET http://localhost:8080/hello
-Accept: text/plain
+{
+  "id": 1,
+  "username": "teacher_li",
+  "password": "654321",
+  "realName": "李老师（已修改）",
+  "role": "TEACHER"
+}
+
+### 6. 删除用户
+DELETE http://localhost:8080/user/delete/1

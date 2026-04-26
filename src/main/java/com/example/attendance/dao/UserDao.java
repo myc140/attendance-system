@@ -15,19 +15,16 @@ public class UserDao {
     private JdbcTemplate jdbcTemplate;
 
     /**
-     * 新增教师用户（固定角色为teacher）
+     * 新增教师用户（固定 role 为 TEACHER，create_time 自动设为当前时间）
      */
     public int insert(User user) {
-        // 修正：SQL语句字段顺序与参数顺序严格对应
-        String sql = "INSERT INTO user(username, password, name, role, phone, email) VALUES(?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO user(username, password, real_name, role, create_time) VALUES(?, ?, ?, ?, NOW())";
         return jdbcTemplate.update(
                 sql,
                 user.getUsername(),
                 user.getPassword(),
-                user.getName(),
-                "teacher", // 固定角色为teacher
-                user.getPhone(),
-                user.getEmail()
+                user.getRealName(),
+                "TEACHER"
         );
     }
 
@@ -36,23 +33,15 @@ public class UserDao {
      */
     public User findById(Integer id) {
         String sql = "SELECT * FROM user WHERE id = ?";
-        return jdbcTemplate.queryForObject(
-                sql,
-                new BeanPropertyRowMapper<>(User.class),
-                id
-        );
+        return jdbcTemplate.queryForObject(sql, new BeanPropertyRowMapper<>(User.class), id);
     }
 
     /**
-     * 根据用户名查询（用于登录验证）
+     * 根据用户名查询（登录验证用）
      */
     public User findByUsername(String username) {
         String sql = "SELECT * FROM user WHERE username = ?";
-        List<User> list = jdbcTemplate.query(
-                sql,
-                new BeanPropertyRowMapper<>(User.class),
-                username
-        );
+        List<User> list = jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(User.class), username);
         return list.isEmpty() ? null : list.get(0);
     }
 
@@ -60,25 +49,21 @@ public class UserDao {
      * 查询所有教师用户
      */
     public List<User> findAllTeachers() {
-        String sql = "SELECT * FROM user WHERE role = 'teacher'";
-        return jdbcTemplate.query(
-                sql,
-                new BeanPropertyRowMapper<>(User.class)
-        );
+        String sql = "SELECT * FROM user WHERE role = 'TEACHER'";
+        return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(User.class));
     }
 
     /**
      * 更新用户信息
      */
     public int update(User user) {
-        String sql = "UPDATE user SET username=?, password=?, name=?, phone=?, email=? WHERE id=?";
+        String sql = "UPDATE user SET username=?, password=?, real_name=?, role=? WHERE id=?";
         return jdbcTemplate.update(
                 sql,
                 user.getUsername(),
                 user.getPassword(),
-                user.getName(),
-                user.getPhone(),
-                user.getEmail(),
+                user.getRealName(),
+                user.getRole(),
                 user.getId()
         );
     }
