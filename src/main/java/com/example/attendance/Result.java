@@ -28,6 +28,11 @@ public class Result<T> {
         return new Result<>(500, message, null);
     }
 
+    //  新增：判断请求是否成功的方法
+    public boolean isSuccess() {
+        return this.code != null && this.code == 200;
+    }
+
     // Getter & Setter
     public Integer getCode() { return code; }
     public void setCode(Integer code) { this.code = code; }

@@ -1,69 +1,100 @@
 package com.example.attendance.service.impl;
 
+import com.example.attendance.Result;
 import com.example.attendance.User;
 import com.example.attendance.dao.UserDao;
 import com.example.attendance.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
+import java.time.LocalDateTime;
 import java.util.List;
 
-/**
- * UserService 接口的实现类
- * 调用 UserDao 完成数据库操作，实现业务逻辑
- */
-@Service // 必须加这个注解，让Spring管理这个类
+@Service
 public class UserServiceImpl implements UserService {
 
-    // 注入 UserDao（已经完成的DAO层）
-    @Autowired
-    private UserDao userDao;
+    private final UserDao userDao;
+    private final PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
 
-    /**
-     * 新增用户：直接调用 UserDao 的 insert 方法
-     */
+    // 构造注入，解决 AuthenticationManager 找不到的问题
+    public UserServiceImpl(UserDao userDao,
+                           PasswordEncoder passwordEncoder,
+                           AuthenticationManager authenticationManager) {
+        this.userDao = userDao;
+        this.passwordEncoder = passwordEncoder;
+        this.authenticationManager = authenticationManager;
+    }
+
+    // 你原来的方法，完全保留
     @Override
     public int addUser(User user) {
         return userDao.insert(user);
     }
 
-    /**
-     * 根据ID查询用户：直接调用 UserDao 的 findById 方法
-     */
     @Override
     public User getUserById(Integer id) {
         return userDao.findById(id);
     }
 
-    /**
-     * 根据用户名查询用户：直接调用 UserDao 的 findByUsername 方法
-     */
     @Override
     public User getUserByUsername(String username) {
         return userDao.findByUsername(username);
     }
 
-    /**
-     * 查询所有教师用户：直接调用 UserDao 的 findAllTeachers 方法
-     */
     @Override
     public List<User> getAllTeachers() {
         return userDao.findAllTeachers();
     }
 
-    /**
-     * 更新用户信息：直接调用 UserDao 的 update 方法
-     */
     @Override
     public int updateUser(User user) {
         return userDao.update(user);
     }
 
-    /**
-     * 根据ID删除用户：直接调用 UserDao 的 deleteById 方法
-     */
     @Override
     public int deleteUserById(Integer id) {
         return userDao.deleteById(id);
+    }
+
+    // 新增登录方法
+    @Override
+    public Result<?> login(String username, String password) {
+        try {
+            UsernamePasswordAuthenticationToken authToken =
+                    new UsernamePasswordAuthenticationToken(username, password);
+            Authentication authentication = authenticationManager.authenticate(authToken);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            User user = (User) authentication.getPrincipal();
+            return Result.success("登录成功，用户：" + user.getUsername() + "，角色：" + user.getRole());
+        } catch (Exception e) {
+            return Result.fail("登录失败：" + e.getMessage());
+        }
+    }
+
+    // 新增注册方法（解决了空指针异常）
+    @Override
+    public Result<?> register(User user) {
+        if (user == null || user.getUsername() == null || user.getPassword() == null) {
+            return Result.fail("用户名或密码不能为空");
+        }
+        if (userDao.existsByUsername(user.getUsername())) {
+            return Result.fail("用户名已存在");
+        }
+        // 密码加密
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        // 设置创建时间（兼容你原来的insert方法，这里也可以不设）
+        if (user.getCreateTime() == null) {
+            user.setCreateTime(LocalDateTime.now());
+        }
+        // 注册时默认角色为学生，和addUser的教师区分开
+        if (user.getRole() == null) {
+            user.setRole("STUDENT");
+        }
+        userDao.insert(user);
+        return Result.success("注册成功");
     }
 }

@@ -1,5 +1,6 @@
 package com.example.attendance.service;
 
+import  com.example.attendance.Result;
 import com.example.attendance.User;
 import java.util.List;
 
@@ -16,4 +17,7 @@ public interface UserService {
     int updateUser(User user);
     // 根据ID删除用户
     int deleteUserById(Integer id);
+    // 新增 登录、注册
+    Result<?> login(String username, String password);
+    Result<?> register(User user);
 }
