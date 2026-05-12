@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>考勤系统首页</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div class="container">
+    <h2>欢迎回来，<span sec:authentication="name"></span>！</h2>
+    <p>这是考勤系统首页</p >
+    <a th:href="@{/logout}" class="btn">退出登录</a >
+</div>
+</body>
+</html>

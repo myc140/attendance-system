@@ -20,7 +20,6 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    // 注册 AuthenticationManager，解决找不到Bean的问题
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
@@ -31,9 +30,23 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        // 放行所有/user开头的接口，包括你原来的增删改查和新增的登录注册
-                        .requestMatchers("/user/**").permitAll()
+                        // 放行原有所有/user接口 + 页面 + 静态css
+                        .requestMatchers("/user/**", "/css/**").permitAll()
                         .anyRequest().authenticated()
+                )
+                // 适配网页登录跳转
+                .formLogin(form -> form
+                        .loginPage("/user/login-page")
+                        .loginProcessingUrl("/login")
+                        .defaultSuccessUrl("/user/index", true)
+                        .failureUrl("/user/login-page?error")
+                        .permitAll()
+                )
+                // 适配退出登录
+                .logout(logout -> logout
+                        .logoutUrl("/logout")
+                        .logoutSuccessUrl("/user/login-page?logout")
+                        .permitAll()
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
