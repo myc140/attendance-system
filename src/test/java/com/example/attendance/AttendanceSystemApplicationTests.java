@@ -13,7 +13,7 @@ public class AttendanceSystemApplicationTests {
 
     @Test
     public void testUserDao() {
-        // 1. 新建一个教师用户（create_time 由SQL的NOW()自动生成，不用传）
+        // studentList.html. 新建一个教师用户（create_time 由SQL的NOW()自动生成，不用传）
         User teacher = new User(
                 null,
                 "teacher_wang",

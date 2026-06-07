@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>学生信息管理列表</title>
+    <style>
+        body { font-family: "微软雅黑", sans-serif; margin: 30px; }
+        table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+        th, td { border: 1px solid #999; padding: 8px; text-align: center; }
+        th { background-color: #f5f5f5; }
+        .search-area { margin-bottom: 15px; }
+        .btn-add {
+            display: inline-block;
+            padding: 4px 10px;
+            background-color: #34a853;
+            color: white;
+            text-decoration: none;
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body>
+<h2>学生信息管理列表</h2>
+
+<div class="search-area">
+    <input type="text" placeholder="输入姓名/学号搜索">
+    <button>搜索</button>
+    <!-- 纯链接跳转，无任何JS依赖 -->
+    <a href=" " class="btn-add">新增学生</a >
+</div>
+
+<table>
+    <thead>
+    <tr>
+        <th>学号</th>
+        <th>姓名</th>
+        <th>班级</th>
+        <th>性别</th>
+        <th>生日</th>
+        <th>手机号</th>
+        <th>操作</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td colspan="7">暂无学生数据</td>
+    </tr>
+    </tbody>
+</table>
+</body>
+</html>

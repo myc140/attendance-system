@@ -2,12 +2,9 @@ package com.example.attendance.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
@@ -15,14 +12,20 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class SecurityConfig {
 
+    // 自定义明文密码比对，解决NoOpPasswordEncoder报错问题
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+        return new PasswordEncoder() {
+            @Override
+            public String encode(CharSequence rawPassword) {
+                return rawPassword.toString();
+            }
 
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
-        return config.getAuthenticationManager();
+            @Override
+            public boolean matches(CharSequence rawPassword, String encodedPassword) {
+                return rawPassword.toString().equals(encodedPassword);
+            }
+        };
     }
 
     @Bean
@@ -30,26 +33,25 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        // 放行原有所有/user接口 + 页面 + 静态css
-                        .requestMatchers("/user/**", "/css/**").permitAll()
+                        // 放行所有学生页面、接口和用户登录注册
+                        .requestMatchers("/user/**", "/student/**", "/*.html", "/css/**").permitAll()
                         .anyRequest().authenticated()
                 )
-                // 适配网页登录跳转
                 .formLogin(form -> form
                         .loginPage("/user/login-page")
                         .loginProcessingUrl("/login")
-                        .defaultSuccessUrl("/user/index", true)
+                        // 关键修改：登录成功直接跳转到学生列表页
+                        .defaultSuccessUrl("/studentList.html", true)
                         .failureUrl("/user/login-page?error")
                         .permitAll()
                 )
-                // 适配退出登录
                 .logout(logout -> logout
                         .logoutUrl("/logout")
                         .logoutSuccessUrl("/user/login-page?logout")
                         .permitAll()
                 )
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                        .sessionCreationPolicy(SessionCreationPolicy.ALWAYS)
                 );
 
         return http.build();

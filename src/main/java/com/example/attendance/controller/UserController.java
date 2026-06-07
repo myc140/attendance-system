@@ -5,7 +5,6 @@ import com.example.attendance.User;
 import com.example.attendance.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -20,10 +19,7 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    // ---------------------- 你原来的API接口（完全保留） ----------------------
+    // ---------------------- 原有API接口 全部保留 ----------------------
     @PostMapping("/add")
     @ResponseBody
     public String addUser(@RequestBody User user) {
@@ -79,12 +75,13 @@ public class UserController {
         return result.isSuccess() ? ResponseEntity.ok(result) : ResponseEntity.badRequest().body(result);
     }
 
-    // ---------------------- 页面跳转接口（修复版） ----------------------
+    // ---------------------- 页面跳转 + 修复后注册逻辑 ----------------------
     @GetMapping("/register-page")
     public String registerPage() {
         return "register";
     }
 
+    // 修复：取消密码加密、自动赋值真实姓名、角色适配数据库
     @PostMapping("/register-page")
     public String registerFromPage(
             @RequestParam String username,
@@ -92,26 +89,28 @@ public class UserController {
             @RequestParam String confirmPassword,
             Model model) {
 
-        // 校验1：两次密码是否一致
+        // 两次密码不一致
         if (!password.equals(confirmPassword)) {
             model.addAttribute("error", "两次输入的密码不一致");
             return "register";
         }
 
-        // 校验2：用户名是否已存在
+        // 用户名已存在
         if (userService.getUserByUsername(username) != null) {
             model.addAttribute("error", "用户名已被占用");
             return "register";
         }
 
-        // 关键修复：在这里初始化 User 对象
         User user = new User();
         user.setUsername(username);
-        user.setPassword(passwordEncoder.encode(password));
-        user.setRole("ROLE_USER");
+        // 明文存密码，不和登录校验冲突
+        user.setPassword(password);
+        // 真实姓名默认同用户名
+        user.setRealName(username);
+        // 适配你UserDao固定角色 TEACHER
+        user.setRole("TEACHER");
 
         Result<?> result = userService.register(user);
-
         if (result.isSuccess()) {
             model.addAttribute("success", "注册成功！请登录");
             return "redirect:/user/login-page";

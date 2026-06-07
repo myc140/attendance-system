@@ -2,6 +2,7 @@ package com.example.attendance;
 
 import jakarta.persistence.*;
 import java.time.LocalDate;
+import java.time.LocalTime;
 
 @Entity
 @Table(name = "attendance")
@@ -17,13 +18,19 @@ public class Attendance {
     @Column(name = "attendance_date")
     private LocalDate attendanceDate;
 
+    @Column(name = "check_time")
+    private LocalTime checkTime;
+
+    @Column(name = "course_id")
+    private String courseId;
+
     @Column(name = "status")
     private String status;
 
-    // 无参构造（JPA 必须要有）
+    // 无参构造
     public Attendance() {}
 
-    // Getter 和 Setter 方法
+    // Getter & Setter
     public Long getId() {
         return id;
     }
@@ -48,6 +55,22 @@ public class Attendance {
         this.attendanceDate = attendanceDate;
     }
 
+    public LocalTime getCheckTime() {
+        return checkTime;
+    }
+
+    public void setCheckTime(LocalTime checkTime) {
+        this.checkTime = checkTime;
+    }
+
+    public String getCourseId() {
+        return courseId;
+    }
+
+    public void setCourseId(String courseId) {
+        this.courseId = courseId;
+    }
+
     public String getStatus() {
         return status;
     }
@@ -55,4 +78,4 @@ public class Attendance {
     public void setStatus(String status) {
         this.status = status;
     }
-}
+} // 注意：这里是类的结束大括号

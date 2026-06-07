@@ -4,32 +4,18 @@ import com.example.attendance.Result;
 import com.example.attendance.User;
 import com.example.attendance.dao.UserDao;
 import com.example.attendance.service.UserService;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
 public class UserServiceImpl implements UserService {
 
     private final UserDao userDao;
-    private final PasswordEncoder passwordEncoder;
-    private final AuthenticationManager authenticationManager;
 
-    // 构造注入，解决 AuthenticationManager 找不到的问题
-    public UserServiceImpl(UserDao userDao,
-                           PasswordEncoder passwordEncoder,
-                           AuthenticationManager authenticationManager) {
+    public UserServiceImpl(UserDao userDao) {
         this.userDao = userDao;
-        this.passwordEncoder = passwordEncoder;
-        this.authenticationManager = authenticationManager;
     }
 
-    // 你原来的方法，完全保留
     @Override
     public int addUser(User user) {
         return userDao.insert(user);
@@ -60,41 +46,37 @@ public class UserServiceImpl implements UserService {
         return userDao.deleteById(id);
     }
 
-    // 新增登录方法
+
+    // 登录逻辑 明文比对 适配你的数据库
     @Override
     public Result<?> login(String username, String password) {
-        try {
-            UsernamePasswordAuthenticationToken authToken =
-                    new UsernamePasswordAuthenticationToken(username, password);
-            Authentication authentication = authenticationManager.authenticate(authToken);
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-            User user = (User) authentication.getPrincipal();
-            return Result.success("登录成功，用户：" + user.getUsername() + "，角色：" + user.getRole());
-        } catch (Exception e) {
-            return Result.fail("登录失败：" + e.getMessage());
+        User user = userDao.findByUsername(username);
+        // 用户名不存在
+        if(user == null){
+            return Result.fail("用户不存在");
         }
+        // 密码不对
+        if(!password.equals(user.getPassword())){
+            return Result.fail("用户名或密码错误");
+        }
+        // 登录成功
+        return Result.success(user);
     }
 
-    // 新增注册方法（解决了空指针异常）
+
+    // 注册逻辑
     @Override
     public Result<?> register(User user) {
-        if (user == null || user.getUsername() == null || user.getPassword() == null) {
-            return Result.fail("用户名或密码不能为空");
+        // 用户名已存在
+        if(userDao.existsByUsername(user.getUsername())){
+            return Result.fail("用户名已被占用");
         }
-        if (userDao.existsByUsername(user.getUsername())) {
-            return Result.fail("用户名已存在");
+        // 插入用户，角色固定TEACHER
+        int rows = userDao.insert(user);
+        if(rows > 0){
+            return Result.success("注册成功");
+        }else{
+            return Result.fail("注册失败");
         }
-        // 密码加密
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        // 设置创建时间（兼容你原来的insert方法，这里也可以不设）
-        if (user.getCreateTime() == null) {
-            user.setCreateTime(LocalDateTime.now());
-        }
-        // 注册时默认角色为学生，和addUser的教师区分开
-        if (user.getRole() == null) {
-            user.setRole("STUDENT");
-        }
-        userDao.insert(user);
-        return Result.success("注册成功");
     }
 }
