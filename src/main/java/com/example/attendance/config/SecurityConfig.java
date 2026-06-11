@@ -34,7 +34,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         // 放行所有学生页面、接口和用户登录注册
-                        .requestMatchers("/user/**", "/student/**", "/*.html", "/css/**").permitAll()
+                        .requestMatchers("/user/**", "/student/**", "/attendance/**", "/course/**", "/leave/**", "/audit/**", "/backup/**", "/*.html", "/css/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form

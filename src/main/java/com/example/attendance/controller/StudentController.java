@@ -1,7 +1,9 @@
 package com.example.attendance.controller;
 
+import com.example.attendance.AuditLog;
 import com.example.attendance.Result;
 import com.example.attendance.Student;
+import com.example.attendance.dao.AuditLogRepository;
 import com.example.attendance.service.StudentService;
 import jakarta.validation.Valid;
 import org.springframework.validation.BindingResult;
@@ -13,10 +15,12 @@ import java.util.stream.Collectors;
 @RestController
 public class StudentController {
     private final StudentService studentService;
+    private final AuditLogRepository auditLogRepository;
 
     // 构造器注入，消除黄色警告
-    public StudentController(StudentService studentService) {
+    public StudentController(StudentService studentService, AuditLogRepository auditLogRepository) {
         this.studentService = studentService;
+        this.auditLogRepository = auditLogRepository;
     }
 
     // ========== 你原来的接口，完全保留 ==========
@@ -49,6 +53,7 @@ public class StudentController {
         }
         try {
             studentService.addStudent(student);
+            auditLogRepository.save(new AuditLog("teacher", "ADD_STUDENT", student.getStudentId(), "新增学生"));
             return Result.success("新增学生成功");
         } catch (Exception e) {
             return Result.fail("新增失败：" + e.getMessage());
@@ -71,6 +76,7 @@ public class StudentController {
             return Result.fail(errorMsg);
         }
         studentService.updateStudent(student);
+        auditLogRepository.save(new AuditLog("teacher", "UPDATE_STUDENT", student.getStudentId(), "更新学生信息"));
         return Result.success("更新学生成功");
     }
 
@@ -78,6 +84,7 @@ public class StudentController {
     @DeleteMapping("/student/delete/{studentId}")
     public Result<String> deleteStudent(@PathVariable String studentId) {
         studentService.deleteStudent(studentId);
+        auditLogRepository.save(new AuditLog("teacher", "DELETE_STUDENT", studentId, "删除学生"));
         return Result.success("删除学生成功");
     }
     // ========== 作业要求：带搜索+排序的学生列表接口 ==========
@@ -97,6 +104,7 @@ public class StudentController {
             return Result.fail("请选择要删除的学生");
         }
         studentService.batchDeleteStudents(studentIds);
+        auditLogRepository.save(new AuditLog("teacher", "BATCH_DELETE_STUDENT", String.join(",", studentIds), "批量删除学生"));
         return Result.success("批量删除成功");
     }
 }
