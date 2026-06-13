@@ -60,6 +60,11 @@ public class StudentController {
         }
     }
 
+    @PostMapping("/api/students")
+    public Result<String> addStudentApi(@Valid @RequestBody Student student, BindingResult result) {
+        return addStudent(student, result);
+    }
+
     // 新增：查询所有学生
     @GetMapping("/student/list")
     public Result<List<Student>> listStudent() {

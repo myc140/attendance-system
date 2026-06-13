@@ -1,5 +1,6 @@
 package com.example.attendance;
 
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Collections;
@@ -12,13 +13,28 @@ import org.springframework.security.core.userdetails.UserDetails;
  * 适配 Spring Security 的 User 实体类
  * 表字段：id, username, password, real_name, role, create_time
  */
+@Entity
+@Table(name = "`user`", uniqueConstraints = @UniqueConstraint(name = "username", columnNames = "username"))
 public class User implements UserDetails {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Integer id;
+
+    @Column(name = "username", nullable = false, length = 50)
     private String username;
+
+    @Column(name = "password", nullable = false, length = 100)
     private String password;
-    private String realName;  // 对应表字段 real_name（下划线转驼峰）
-    private String role;
-    private LocalDateTime createTime;  // 对应表字段 create_time
+
+    @Column(name = "real_name", nullable = false, length = 50)
+    private String realName;
+
+    @Column(name = "role", nullable = false, length = 20, columnDefinition = "varchar(20) default 'TEACHER'")
+    private String role = "TEACHER";
+
+    @Column(name = "create_time", columnDefinition = "datetime default CURRENT_TIMESTAMP")
+    private LocalDateTime createTime;
 
     // 无参构造（JdbcTemplate 必须）
     public User() {}

@@ -42,10 +42,10 @@ public class AttendanceServiceImpl implements AttendanceService {
                 predicates.add(cb.equal(root.get("courseId"), courseId));
             }
             if (startDate != null) {
-                predicates.add(cb.greaterThanOrEqualTo(root.get("attendanceDate"), startDate));
+                predicates.add(cb.greaterThanOrEqualTo(root.get("checkInTime"), startDate.atStartOfDay()));
             }
             if (endDate != null) {
-                predicates.add(cb.lessThanOrEqualTo(root.get("attendanceDate"), endDate));
+                predicates.add(cb.lessThanOrEqualTo(root.get("checkInTime"), endDate.atTime(23, 59, 59)));
             }
             if (status != null && !status.isBlank()) {
                 predicates.add(cb.equal(root.get("status"), status));
@@ -79,7 +79,7 @@ public class AttendanceServiceImpl implements AttendanceService {
         Attendance attendance = new Attendance();
         attendance.setStudentId(studentId);
         attendance.setCourseId(courseId);
-        attendance.setAttendanceDate(date);
+        attendance.setCheckInTime(date.atTime(checkTime));
         attendance.setCheckTime(checkTime);
         attendance.setStatus(status);
         attendanceRepository.save(attendance);
@@ -92,6 +92,9 @@ public class AttendanceServiceImpl implements AttendanceService {
         EasyExcel.read(file.getInputStream(), Attendance.class, new AnalysisEventListener<Attendance>() {
             @Override
             public void invoke(Attendance a, AnalysisContext context) {
+                if (a.getCheckTime() != null) {
+                    a.setCheckInTime(a.getAttendanceDate().atTime(a.getCheckTime()));
+                }
                 a.setStatus(computeStatus(a.getCheckTime()));
                 list.add(a);
             }
@@ -108,14 +111,14 @@ public class AttendanceServiceImpl implements AttendanceService {
         List<Attendance> list = attendanceRepository.findAll((root, query, cb) -> {
             List<jakarta.persistence.criteria.Predicate> predicates = new ArrayList<>();
             if (courseId != null && !courseId.isBlank()) predicates.add(cb.equal(root.get("courseId"), courseId));
-            if (startDate != null) predicates.add(cb.greaterThanOrEqualTo(root.get("attendanceDate"), startDate));
-            if (endDate != null) predicates.add(cb.lessThanOrEqualTo(root.get("attendanceDate"), endDate));
+            if (startDate != null) predicates.add(cb.greaterThanOrEqualTo(root.get("checkInTime"), startDate.atStartOfDay()));
+            if (endDate != null) predicates.add(cb.lessThanOrEqualTo(root.get("checkInTime"), endDate.atTime(23, 59, 59)));
             return cb.and(predicates.toArray(new jakarta.persistence.criteria.Predicate[0]));
         });
 
-        long normal = list.stream().filter(a -> "正常".equals(a.getStatus())).count();
-        long late = list.stream().filter(a -> "迟到".equals(a.getStatus())).count();
-        long absent = list.stream().filter(a -> "缺勤".equals(a.getStatus())).count();
+        long normal = list.stream().filter(a -> "NORMAL".equals(a.getStatus())).count();
+        long late = list.stream().filter(a -> "LATE".equals(a.getStatus())).count();
+        long absent = list.stream().filter(a -> "ABSENT".equals(a.getStatus())).count();
         double rate = list.isEmpty() ? 0 : (normal + late) * 100.0 / list.size();
 
         Map<String, Object> map = new HashMap<>();
@@ -132,13 +135,13 @@ public class AttendanceServiceImpl implements AttendanceService {
         List<Attendance> list = attendanceRepository.findAll((root, query, cb) -> {
             List<jakarta.persistence.criteria.Predicate> predicates = new ArrayList<>();
             if (courseId != null && !courseId.isBlank()) predicates.add(cb.equal(root.get("courseId"), courseId));
-            if (startDate != null) predicates.add(cb.greaterThanOrEqualTo(root.get("attendanceDate"), startDate));
-            if (endDate != null) predicates.add(cb.lessThanOrEqualTo(root.get("attendanceDate"), endDate));
+            if (startDate != null) predicates.add(cb.greaterThanOrEqualTo(root.get("checkInTime"), startDate.atStartOfDay()));
+            if (endDate != null) predicates.add(cb.lessThanOrEqualTo(root.get("checkInTime"), endDate.atTime(23, 59, 59)));
             return cb.and(predicates.toArray(new jakarta.persistence.criteria.Predicate[0]));
         });
 
         Map<LocalDate, Long> countMap = list.stream()
-                .collect(Collectors.groupingBy(Attendance::getAttendanceDate, Collectors.counting()));
+                .collect(Collectors.groupingBy(a -> a.getCheckInTime() != null ? a.getCheckInTime().toLocalDate() : null, Collectors.counting()));
 
         List<Map<String, Object>> result = new ArrayList<>();
         for (LocalDate d = startDate; !d.isAfter(endDate); d = d.plusDays(1)) {
@@ -152,9 +155,9 @@ public class AttendanceServiceImpl implements AttendanceService {
 
     // 辅助方法：根据打卡时间判断状态
     private String computeStatus(LocalTime t) {
-        if (t == null) return "缺勤";
-        if (t.isBefore(START_TIME)) return "正常";
-        if (t.isBefore(END_TIME)) return "迟到";
-        return "早退";
+        if (t == null) return "ABSENT";
+        if (t.isBefore(START_TIME)) return "NORMAL";
+        if (t.isBefore(END_TIME)) return "LATE";
+        return "EARLY";
     }
 }

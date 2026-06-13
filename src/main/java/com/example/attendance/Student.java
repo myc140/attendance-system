@@ -1,28 +1,36 @@
 package com.example.attendance;
 
+import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import java.time.LocalDate;
 
+@Entity
+@Table(name = "`student`")
 public class Student {
-    // 原有字段（保留不变，加了验证注解）
     @NotBlank(message = "姓名不能为空")
+    @Column(name = "name", length = 50)
     private String name;
 
+    @Id
     @NotBlank(message = "学号不能为空")
-    @Pattern(regexp = "^[0-9]{10}$", message = "学号必须是10位数字")
+    @Pattern(regexp = "^[0-9]{8}$", message = "学号必须是8位数字")
+    @Column(name = "student_id", nullable = false, length = 50)
     private String studentId;
 
     @NotBlank(message = "班级不能为空")
+    @Column(name = "class_name", length = 50)
     private String className;
 
-    // ========== 新增字段 ==========
     @Pattern(regexp = "^男$|^女$", message = "性别只能填「男」或「女」")
+    @Column(name = "gender", length = 2)
     private String gender;
 
     @Past(message = "出生日期必须是过去的日期")
+    @Column(name = "birth_date")
     private LocalDate birthDate;
 
-    @Pattern(regexp = "^1[3-9]\\d{9}$", message = "手机号格式不正确")
+    @Pattern(regexp = "^1\\d{10}$", message = "手机号必须是11位数字")
+    @Column(name = "phone", length = 11)
     private String phone;
 
     // 无参构造（必须保留，Spring 需要）

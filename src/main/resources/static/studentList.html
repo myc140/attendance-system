@@ -24,9 +24,9 @@
 
 <div class="search-area">
     <input type="text" placeholder="输入姓名/学号搜索">
-    <button>搜索</button>
-    <!-- 纯链接跳转，无任何JS依赖 -->
-    <a href=" " class="btn-add">新增学生</a >
+    <button type="button">搜索</button>
+    <a href="addStudent.html" class="btn-add">新增学生</a>
+    <a href="attendance.html" class="btn-add" style="background-color:#4285f4; margin-left:8px;">签到打卡</a>
 </div>
 
 <table>
@@ -41,11 +41,41 @@
         <th>操作</th>
     </tr>
     </thead>
-    <tbody>
+    <tbody id="studentTableBody">
     <tr>
-        <td colspan="7">暂无学生数据</td>
+        <td colspan="7">加载中...</td>
     </tr>
     </tbody>
 </table>
+
+<script>
+  function loadStudents() {
+    fetch('/student/list')
+      .then(res => res.json())
+      .then(result => {
+        const tbody = document.getElementById('studentTableBody');
+        if (!result || result.code !== 200 || !Array.isArray(result.data) || result.data.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="7">暂无学生数据</td></tr>';
+          return;
+        }
+        tbody.innerHTML = result.data.map(student => `
+          <tr>
+            <td>${student.studentId || ''}</td>
+            <td>${student.name || ''}</td>
+            <td>${student.className || ''}</td>
+            <td>${student.gender || ''}</td>
+            <td>${student.birthDate || ''}</td>
+            <td>${student.phone || ''}</td>
+            <td>编辑 / 删除</td>
+          </tr>
+        `).join('');
+      })
+      .catch(() => {
+        document.getElementById('studentTableBody').innerHTML = '<tr><td colspan="7">加载失败，请检查接口</td></tr>';
+      });
+  }
+
+  window.addEventListener('load', loadStudents);
+</script>
 </body>
 </html>

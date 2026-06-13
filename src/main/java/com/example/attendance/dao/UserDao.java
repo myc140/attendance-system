@@ -18,7 +18,7 @@ public class UserDao {
      * 新增教师用户（固定 role 为 TEACHER，create_time 自动设为当前时间）
      */
     public int insert(User user) {
-        String sql = "INSERT INTO user(username, password, real_name, role, create_time) VALUES(?, ?, ?, ?, NOW())";
+        String sql = "INSERT INTO `user`(username, password, real_name, role, create_time) VALUES(?, ?, ?, ?, NOW())";
         return jdbcTemplate.update(
                 sql,
                 user.getUsername(),
@@ -32,7 +32,7 @@ public class UserDao {
      * 根据ID查询用户
      */
     public User findById(Integer id) {
-        String sql = "SELECT * FROM user WHERE id = ?";
+        String sql = "SELECT * FROM `user` WHERE id = ?";
         return jdbcTemplate.queryForObject(sql, new BeanPropertyRowMapper<>(User.class), id);
     }
 
@@ -40,7 +40,7 @@ public class UserDao {
      * 根据用户名查询（登录验证用）
      */
     public User findByUsername(String username) {
-        String sql = "SELECT * FROM user WHERE username = ?";
+        String sql = "SELECT * FROM `user` WHERE username = ?";
         List<User> list = jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(User.class), username);
         return list.isEmpty() ? null : list.get(0);
     }
@@ -49,7 +49,7 @@ public class UserDao {
      * 查询所有教师用户
      */
     public List<User> findAllTeachers() {
-        String sql = "SELECT * FROM user WHERE role = 'TEACHER'";
+        String sql = "SELECT * FROM `user` WHERE role = 'TEACHER'";
         return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(User.class));
     }
 
@@ -57,7 +57,7 @@ public class UserDao {
      * 更新用户信息
      */
     public int update(User user) {
-        String sql = "UPDATE user SET username=?, password=?, real_name=?, role=? WHERE id=?";
+        String sql = "UPDATE `user` SET username=?, password=?, real_name=?, role=? WHERE id=?";
         return jdbcTemplate.update(
                 sql,
                 user.getUsername(),
@@ -72,7 +72,7 @@ public class UserDao {
      * 根据ID删除用户
      */
     public int deleteById(Integer id) {
-        String sql = "DELETE FROM user WHERE id = ?";
+        String sql = "DELETE FROM `user` WHERE id = ?";
         return jdbcTemplate.update(sql, id);
     }
 
@@ -81,7 +81,7 @@ public class UserDao {
      * 判断用户名是否已存在（注册时用）
      */
     public boolean existsByUsername(String username) {
-        String sql = "SELECT COUNT(*) FROM user WHERE username = ?";
+        String sql = "SELECT COUNT(*) FROM `user` WHERE username = ?";
         Integer count = jdbcTemplate.queryForObject(sql, Integer.class, username);
         return count != null && count > 0;
     }

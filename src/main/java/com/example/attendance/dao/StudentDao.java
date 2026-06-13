@@ -20,7 +20,7 @@ public class StudentDao {
     private JdbcTemplate jdbcTemplate;
 
     public void insertStudent(Student student) {
-        String sql = "INSERT INTO student(name, student_id, class_name, gender, birth_date, phone) VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO `student`(name, student_id, class_name, gender, birth_date, phone) VALUES (?, ?, ?, ?, ?, ?)";
         jdbcTemplate.update(sql,
                 student.getName(),
                 student.getStudentId(),
@@ -32,12 +32,12 @@ public class StudentDao {
     }
 
     public List<Student> findAllStudents() {
-        String sql = "SELECT name, student_id, class_name, gender, birth_date, phone FROM student";
+        String sql = "SELECT name, student_id, class_name, gender, birth_date, phone FROM `student`";
         return jdbcTemplate.query(sql, new StudentRowMapper());
     }
 
     public Student findStudentById(String studentId) {
-        String sql = "SELECT name, student_id, class_name, gender, birth_date, phone FROM student WHERE student_id = ?";
+        String sql = "SELECT name, student_id, class_name, gender, birth_date, phone FROM `student` WHERE student_id = ?";
         try {
             return jdbcTemplate.queryForObject(sql, new StudentRowMapper(), studentId);
         } catch (Exception e) {
@@ -46,7 +46,7 @@ public class StudentDao {
     }
 
     public void updateStudent(Student student) {
-        String sql = "UPDATE student SET name=?, class_name=?, gender=?, birth_date=?, phone=? WHERE student_id=?";
+        String sql = "UPDATE `student` SET name=?, class_name=?, gender=?, birth_date=?, phone=? WHERE student_id=?";
         jdbcTemplate.update(sql,
                 student.getName(),
                 student.getClassName(),
@@ -58,7 +58,7 @@ public class StudentDao {
     }
 
     public void deleteStudent(String studentId) {
-        String sql = "DELETE FROM student WHERE student_id = ?";
+        String sql = "DELETE FROM `student` WHERE student_id = ?";
         jdbcTemplate.update(sql, studentId);
     }
 
@@ -87,7 +87,7 @@ public class StudentDao {
     // 修复：删除了错误的SQL语句
     public List<Student> searchStudents(String keyword, String sortField, String sortOrder) {
         StringBuilder sql = new StringBuilder(
-                "SELECT name, student_id, class_name, gender, birth_date, phone FROM student WHERE 1=1 "
+                "SELECT name, student_id, class_name, gender, birth_date, phone FROM `student` WHERE 1=1 "
         );
         List<Object> params = new ArrayList<>();
 
@@ -111,7 +111,7 @@ public class StudentDao {
 
     public void batchDeleteStudents(List<String> studentIds) {
         String placeholders = String.join(",", Collections.nCopies(studentIds.size(), "?"));
-        String sql = "DELETE FROM student WHERE student_id IN (" + placeholders + ")";
+        String sql = "DELETE FROM `student` WHERE student_id IN (" + placeholders + ")";
         jdbcTemplate.update(sql, studentIds.toArray());
     }
 }

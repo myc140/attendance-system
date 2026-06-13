@@ -30,34 +30,68 @@
 <body>
 <h2>新增学生</h2>
 
-<form>
+<form id="addStudentForm" action="/api/students" method="post">
     <div class="form-item">
         <label>学号：</label>
-        <input type="text" required>
+        <input name="studentId" type="text" placeholder="8位数字" required pattern="^[0-9]{8}$">
     </div>
     <div class="form-item">
         <label>姓名：</label>
-        <input type="text" required>
+        <input name="name" type="text" required>
     </div>
     <div class="form-item">
         <label>班级：</label>
-        <input type="text" required>
+        <input name="className" type="text" required>
     </div>
     <div class="form-item">
         <label>性别：</label>
-        <input type="text" required>
+        <select name="gender" required>
+            <option value="">请选择</option>
+            <option value="男">男</option>
+            <option value="女">女</option>
+        </select>
     </div>
     <div class="form-item">
         <label>生日：</label>
-        <input type="date" required>
+        <input name="birthDate" type="date" required>
     </div>
     <div class="form-item">
         <label>手机号：</label>
-        <input type="text" required>
+        <input name="phone" type="text" placeholder="11位手机号" required pattern="^1\d{10}$">
     </div>
 
-    <button type="button" class="btn-submit" onclick="alert('提交功能调试中')">提交</button>
+    <button type="submit" class="btn-submit">提交</button>
     <button type="button" class="btn-back" onclick="history.back()">返回</button>
 </form>
+
+<script>
+  document.getElementById('addStudentForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    const form = e.target;
+
+    fetch('/api/students', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: form.name.value,
+        studentId: form.studentId.value,
+        className: form.className.value,
+        gender: form.gender.value,
+        birthDate: form.birthDate.value,
+        phone: form.phone.value
+      })
+    })
+      .then(async res => {
+        const result = await res.json();
+        if (res.ok && result.code === 200) {
+          alert(result.message || '新增学生成功');
+          window.location.href = 'studentList.html';
+        } else {
+          alert(result.message || '新增学生失败');
+        }
+      })
+      .catch(() => alert('提交失败，请检查后端接口是否可用'));
+  });
+</script>
 </body>
 </html>
